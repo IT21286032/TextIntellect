@@ -25,49 +25,51 @@ def upload_pdf():
 def main():
     st.title("RAG Pipeline Streamlit App")
 
-    # Get OpenAI API key
+    # Sidebar
+    st.sidebar.header("User Input")
     openai_api_key = get_openai_api_key()
-
-    # Set OpenAI API key
-    if openai_api_key:
-        st.write(f"OpenAI API key set: {openai_api_key}")
-    else:
-        st.warning("Please enter your OpenAI API key.")
-
-    # Upload PDF file and get the filename
     pdf_filename = upload_pdf()
 
-    # Display PDF file details
+    # Display user input details
+    st.sidebar.subheader("Details:")
+    if openai_api_key:
+        st.sidebar.write(f"OpenAI API key set: {openai_api_key}")
+    else:
+        st.sidebar.warning("Please enter your OpenAI API key.")
+
     if pdf_filename:
-        st.write("PDF file loaded:", pdf_filename)
+        st.sidebar.write("PDF file loaded:", pdf_filename)
 
-        # Process PDF file and perform RAG pipeline
-        try:
-            # Extract text content from PDF using PyMuPDF
-            pdf_document = fitz.open(pdf_filename)
-            text_content = ""
-            for page_num in range(pdf_document.page_count):
-                page = pdf_document[page_num]
-                text_content += page.get_text()
+    # Expander for RAG Pipeline
+    with st.expander("RAG Pipeline"):
+        if openai_api_key and pdf_filename:
+            # Process PDF file and perform RAG pipeline
+            try:
+                # Extract text content from PDF using PyMuPDF
+                pdf_document = fitz.open(pdf_filename)
+                text_content = ""
+                for page_num in range(pdf_document.page_count):
+                    page = pdf_document[page_num]
+                    text_content += page.get_text()
 
-            # Perform RAG pipeline with OpenAI
-            document = Document(text=text_content)
-            llm = OpenAI(model="gpt-3.5-turbo", temperature=0.1, api_key=openai_api_key)
-            service_context = ServiceContext.from_defaults(llm=llm, embed_model="local:BAAI/bge-small-en-v1.5")
-            index = VectorStoreIndex.from_documents([document], service_context=service_context)
-            query_engine = index.as_query_engine()
+                # Perform RAG pipeline with OpenAI
+                document = Document(text=text_content)
+                llm = OpenAI(model="gpt-3.5-turbo", temperature=0.1, api_key=openai_api_key)
+                service_context = ServiceContext.from_defaults(llm=llm, embed_model="local:BAAI/bge-small-en-v1.5")
+                index = VectorStoreIndex.from_documents([document], service_context=service_context)
+                query_engine = index.as_query_engine()
 
-            # Chat interface
-            conversation = st.text_area("Chat with AI:", height=200, max_chars=500)
-            if st.button("Send"):
-                if conversation:
-                    response = query_engine.query(conversation)
-                    st.write("AI Response:", str(response))
-                else:
-                    st.warning("Please enter a message.")
+                # Chat interface
+                conversation = st.text_area("Chat with AI:", height=200, max_chars=500)
+                if st.button("Send"):
+                    if conversation:
+                        response = query_engine.query(conversation)
+                        st.write("AI Response:", str(response))
+                    else:
+                        st.warning("Please enter a message.")
 
-        except Exception as e:
-            st.error(f"Error processing the PDF: {e}")
+            except Exception as e:
+                st.error(f"Error processing the PDF: {e}")
 
 # Run the Streamlit app
 if __name__ == "__main__":
