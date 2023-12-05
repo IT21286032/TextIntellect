@@ -83,9 +83,9 @@ def main():
                 for message in st.session_state.chat_history:
                     role, content = message["role"], message["content"]
                     if role == "user":
-                        st.text(f"You: {content}")
+                        st.text("You: " + content)
                     else:
-                        st.text(f"AI: {content}")
+                        st.text("AI: " + content)
 
             except Exception as e:
                 st.error(f"Error processing the PDF: {e}")
