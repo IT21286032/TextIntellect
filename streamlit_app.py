@@ -84,9 +84,9 @@ def main():
                 for message in st.session_state.chat_history:
                     role, content = message["role"], message["content"]
                     if role == "user":
-                        st.text("You: " + content)
+                        st.write("You: " + content)
                     else:
-                        st.text("AI: " + str(content))
+                        st.write("AI: " + str(content))
 
 
             except Exception as e:
