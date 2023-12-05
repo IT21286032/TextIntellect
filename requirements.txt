@@ -1,7 +1,7 @@
-streamlit==1.10.0
+streamlit
 llama_index  # Please ensure that this library is available on a package index or install it manually
 openai
-torch==1.10.0
+torch
 python-dotenv
 PyMuPDF
 transformers
