@@ -1,6 +1,7 @@
 # streamlit_app.py
 
 import streamlit as st
+import os
 import fitz  # PyMuPDF
 from llama_index import Document, VectorStoreIndex, ServiceContext
 from llama_index.llms import OpenAI
@@ -10,10 +11,15 @@ def get_openai_api_key():
     openai_api_key = st.text_input("Enter your OpenAI API key:")
     return openai_api_key
 
-# Function to upload PDF file
+# Function to upload PDF file and save it
 def upload_pdf():
     uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
-    return uploaded_file
+    if uploaded_file:
+        # Save the uploaded file
+        with open("uploaded_document.pdf", "wb") as f:
+            f.write(uploaded_file.read())
+        st.success("Document saved successfully.")
+    return "uploaded_document.pdf"
 
 # Main Streamlit app
 def main():
@@ -28,17 +34,17 @@ def main():
     else:
         st.warning("Please enter your OpenAI API key.")
 
-    # Upload PDF file
-    pdf_file = upload_pdf()
+    # Upload PDF file and get the filename
+    pdf_filename = upload_pdf()
 
     # Display PDF file details
-    if pdf_file:
-        st.write("PDF file uploaded:", pdf_file.name)
+    if pdf_filename:
+        st.write("PDF file loaded:", pdf_filename)
 
         # Process PDF file and perform RAG pipeline
         try:
             # Extract text content from PDF using PyMuPDF
-            pdf_document = fitz.open(pdf_file)
+            pdf_document = fitz.open(pdf_filename)
             text_content = ""
             for page_num in range(pdf_document.page_count):
                 page = pdf_document[page_num]
