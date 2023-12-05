@@ -5,6 +5,7 @@ import os
 import fitz  # PyMuPDF
 from llama_index import Document, VectorStoreIndex, ServiceContext
 from llama_index.llms import OpenAI
+from finetech_chatbot_notebook import preprocess_text, extract_product_name, generate_response
 
 # Function to get OpenAI API key from user input
 def get_openai_api_key():
@@ -20,6 +21,19 @@ def upload_pdf():
             f.write(uploaded_file.read())
         st.success("Document saved successfully.")
     return "uploaded_document.pdf"
+
+# Function to process user input using the chatbot
+def process_user_input(user_input):
+    # Add user message to chat history
+    st.session_state.chat_history.append({"role": "user", "content": user_input})
+
+    # Generate bot response
+    response = generate_response(user_input)
+
+    # Add bot response to chat history
+    st.session_state.chat_history.append({"role": "assistant", "content": response})
+
+    return response
 
 # Main Streamlit app
 def main():
@@ -40,8 +54,12 @@ def main():
     if pdf_filename:
         st.sidebar.write("PDF file loaded:", pdf_filename)
 
-    # Expander for RAG Pipeline
-    with st.expander("RAG Pipeline"):
+    # Initialize chat history in session state
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    # Expander for RAG Pipeline and Chatbot
+    with st.expander("RAG Pipeline and Chatbot"):
         if openai_api_key and pdf_filename:
             # Process PDF file and perform RAG pipeline
             try:
@@ -60,16 +78,23 @@ def main():
                 query_engine = index.as_query_engine()
 
                 # Chat interface
-                st.subheader("Chat with AI:")
-                conversation = st.text_area("Type your question and press Enter:", height=200)
+                user_input = st.text_input("Ask me anything:")
                 if st.button("Send"):
-                    if conversation:
-                        # Store and display conversation history
-                        st.text("User: " + conversation)
-                        response = query_engine.query(conversation)
-                        st.text("AI Response: " + str(response))
+                    if user_input:
+                        # Process user input using the chatbot
+                        response = process_user_input(user_input)
+                        st.write("AI Response:", str(response))
                     else:
                         st.warning("Please enter a question.")
+
+                    # Display chat history
+                    for message in st.session_state.chat_history:
+                        role, content = message["role"], message["content"]
+                        with st.chat_message(role):
+                            if role == "user":
+                                st.write(f"👤 **You**: {content}")
+                            else:
+                                st.write(f"🤖 **Assistant**: {content}")
 
             except Exception as e:
                 st.error(f"Error processing the PDF: {e}")
