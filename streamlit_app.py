@@ -1,6 +1,7 @@
 # streamlit_app.py
 
 import streamlit as st
+import fitz  # PyMuPDF
 from llama_index import Document, VectorStoreIndex, ServiceContext
 from llama_index.llms import OpenAI
 
@@ -33,26 +34,34 @@ def main():
     # Display PDF file details
     if pdf_file:
         st.write("PDF file uploaded:", pdf_file.name)
-    else:
-        st.warning("Please upload a PDF file.")
 
-    # Process PDF file and perform RAG pipeline
-    if openai_api_key and pdf_file:
-        # Perform RAG pipeline with OpenAI
-        document = Document(text=pdf_file.read().decode("utf-8"))
-        llm = OpenAI(model="gpt-3.5-turbo", temperature=0.1, api_key=openai_api_key)
-        service_context = ServiceContext.from_defaults(llm=llm, embed_model="local:BAAI/bge-small-en-v1.5")
-        index = VectorStoreIndex.from_documents([document], service_context=service_context)
-        query_engine = index.as_query_engine()
+        # Process PDF file and perform RAG pipeline
+        try:
+            # Extract text content from PDF using PyMuPDF
+            pdf_document = fitz.open(pdf_file)
+            text_content = ""
+            for page_num in range(pdf_document.page_count):
+                page = pdf_document[page_num]
+                text_content += page.get_text()
 
-        # Chat interface
-        conversation = st.text_area("Chat with AI:", height=200, max_chars=500)
-        if st.button("Send"):
-            if conversation:
-                response = query_engine.query(conversation)
-                st.write("AI Response:", str(response))
-            else:
-                st.warning("Please enter a message.")
+            # Perform RAG pipeline with OpenAI
+            document = Document(text=text_content)
+            llm = OpenAI(model="gpt-3.5-turbo", temperature=0.1, api_key=openai_api_key)
+            service_context = ServiceContext.from_defaults(llm=llm, embed_model="local:BAAI/bge-small-en-v1.5")
+            index = VectorStoreIndex.from_documents([document], service_context=service_context)
+            query_engine = index.as_query_engine()
+
+            # Chat interface
+            conversation = st.text_area("Chat with AI:", height=200, max_chars=500)
+            if st.button("Send"):
+                if conversation:
+                    response = query_engine.query(conversation)
+                    st.write("AI Response:", str(response))
+                else:
+                    st.warning("Please enter a message.")
+
+        except Exception as e:
+            st.error(f"Error processing the PDF: {e}")
 
 # Run the Streamlit app
 if __name__ == "__main__":
