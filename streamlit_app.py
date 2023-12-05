@@ -45,13 +45,14 @@ def main():
         index = VectorStoreIndex.from_documents([document], service_context=service_context)
         query_engine = index.as_query_engine()
 
-        # Query example
-        query = st.text_input("Enter your query:")
-        if query:
-            response = query_engine.query(query)
-            st.write("Response:", str(response))
-        else:
-            st.warning("Please enter a query.")
+        # Chat interface
+        conversation = st.text_area("Chat with AI:", height=200, max_chars=500)
+        if st.button("Send"):
+            if conversation:
+                response = query_engine.query(conversation)
+                st.write("AI Response:", str(response))
+            else:
+                st.warning("Please enter a message.")
 
 # Run the Streamlit app
 if __name__ == "__main__":
