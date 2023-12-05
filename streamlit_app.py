@@ -60,13 +60,16 @@ def main():
                 query_engine = index.as_query_engine()
 
                 # Chat interface
-                conversation = st.text_area("Chat with AI:", height=200, max_chars=500)
+                st.subheader("Chat with AI:")
+                conversation = st.text_area("Type your question and press Enter:", height=200)
                 if st.button("Send"):
                     if conversation:
+                        # Store and display conversation history
+                        st.text("User: " + conversation)
                         response = query_engine.query(conversation)
-                        st.write("AI Response:", str(response))
+                        st.text("AI Response: " + str(response))
                     else:
-                        st.warning("Please enter a message.")
+                        st.warning("Please enter a question.")
 
             except Exception as e:
                 st.error(f"Error processing the PDF: {e}")
