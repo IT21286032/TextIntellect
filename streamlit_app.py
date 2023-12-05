@@ -5,7 +5,7 @@ import os
 import fitz  # PyMuPDF
 from llama_index import Document, VectorStoreIndex, ServiceContext
 from llama_index.llms import OpenAI
-from finetech_chatbot_notebook import preprocess_text, extract_product_name, generate_response
+
 
 # Function to get OpenAI API key from user input
 def get_openai_api_key():
