@@ -80,12 +80,14 @@ def main():
                         st.warning("Please enter a question.")
 
                 # Display chat history in WhatsApp-like interface
+                # Display chat history in WhatsApp-like interface
                 for message in st.session_state.chat_history:
                     role, content = message["role"], message["content"]
                     if role == "user":
                         st.text("You: " + content)
                     else:
-                        st.text("AI: " + content)
+                        st.text("AI: " + str(content))
+
 
             except Exception as e:
                 st.error(f"Error processing the PDF: {e}")
